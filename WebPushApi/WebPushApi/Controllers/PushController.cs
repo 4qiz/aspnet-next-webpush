@@ -1,38 +1,35 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebPush;
+using WebPushApi.Mappers;
 using WebPushApi.Services;
 
 namespace WebPushApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PushController : ControllerBase
+    public class PushController(PushNotificationService pushService, SubscriptionService subscriptionService) : ControllerBase
     {
-        private static readonly List<PushSubscription> subscriptions = [];
-        private readonly PushNotificationService _pushService;
-
-        public PushController(PushNotificationService pushService)
-        {
-            _pushService = pushService;
-        }
-
         [HttpPost("subscribe")]
-        public IActionResult Subscribe([FromBody] PushSubscription subscription)
+        public async Task<IActionResult> Subscribe([FromBody] PushSubscription pushSub)
         {
-            if (!subscriptions.Exists(s => s.Endpoint == subscription.Endpoint))
+            if (pushSub == null || string.IsNullOrEmpty(pushSub.Endpoint))
             {
-                subscriptions.Add(subscription);
+                return BadRequest("Invalid subscription data.");
             }
-            return Ok(new { message = "Subscribed successfully!" });
+
+            await subscriptionService.CreateSubscriptionAsync(pushSub.ToSubscription());
+
+            return Ok("Subscription saved.");
         }
 
         [HttpPost("notify")]
         public async Task<IActionResult> Notify([FromBody] string message)
         {
+            var subscriptions = await subscriptionService.GetSubscriptionsAsync();
+
             foreach (var sub in subscriptions)
             {
-                await _pushService.SendNotificationAsync(sub, message);
+                await pushService.SendNotificationAsync(sub.ToPushSubscription(), new Notification { Title = "notification", Body = message });
             }
             return Ok(new { message = "Notifications sent!" });
         }

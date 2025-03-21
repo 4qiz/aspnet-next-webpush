@@ -12,17 +12,17 @@ namespace WebPushApi.Services
         public PushNotificationService(IConfiguration config)
         {
             var vapidConfig = config.GetSection("VAPID");
-            _publicKey = vapidConfig["PublicKey"];
-            _privateKey = vapidConfig["PrivateKey"];
-            _email = vapidConfig["Email"];
+            _publicKey = vapidConfig["PublicKey"] ?? throw new Exception("VAPID__PublicKey is null");
+            _privateKey = vapidConfig["PrivateKey"] ?? throw new Exception("VAPID__PrivateKey is null");
+            _email = vapidConfig["Email"] ?? throw new Exception("VAPID__Email is null");
         }
 
-        public async Task SendNotificationAsync(PushSubscription subscription, string message)
+        public async Task SendNotificationAsync(PushSubscription subscription, Notification notification)
         {
             var vapidDetails = new VapidDetails(_email, _publicKey, _privateKey);
             var webPushClient = new WebPushClient();
 
-            var payload = JsonSerializer.Serialize(new { title = "Notification", body = message });
+            var payload = JsonSerializer.Serialize(new { title = notification.Title, body = notification.Body });
 
             try
             {
@@ -33,5 +33,11 @@ namespace WebPushApi.Services
                 Console.WriteLine($"Error sending push notification: {ex.Message}");
             }
         }
+    }
+
+    public class Notification
+    {
+        public string Title { get; set; }
+        public string Body { get; set; }
     }
 }

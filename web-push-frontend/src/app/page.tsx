@@ -40,7 +40,7 @@ export default function Home() {
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
     });
 
-    const res = await fetch("http://localhost:3000/api/push", {
+    const res = await fetch("/api/push", {
       method: "POST",
       body: JSON.stringify(newSubscription),
       headers: { "Content-Type": "application/json" },

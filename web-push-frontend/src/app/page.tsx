@@ -34,7 +34,13 @@ export default function Home() {
       return;
     }
 
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+    if (!vapidPublicKey) {
+      console.log("NEXT_PUBLIC_VAPID_PUBLIC_KEY is undefined");
+      throw new Error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is undefined");
+    }
+
     const newSubscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),

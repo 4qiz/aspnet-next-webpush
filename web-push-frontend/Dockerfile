@@ -34,6 +34,9 @@ COPY . .
 ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
@@ -47,7 +50,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

@@ -1,7 +1,7 @@
 services:
   frontend-app:
     build:
-      context: ./app
+      context: ./web-push-frontend
       dockerfile: Dockerfile
       args:
         # build time variables

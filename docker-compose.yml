@@ -1,0 +1,39 @@
+services:
+  frontend-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        # build time variables
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    container_name: frontend-app
+    restart: always
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    labels:
+      traefik.enable: true
+      traefik.docker.network: traefik-public
+
+      traefik.http.routers.frontend-app-http.rule: Host(`${FRONTEND_APP_DOMAIN}`)
+      traefik.http.routers.frontend-app-http.entrypoints: http
+      traefik.http.routers.frontend-app-http.middlewares: https-redirect
+      traefik.http.routers.frontend-app-http.service: frontend-app-service
+
+      traefik.http.routers.frontend-app-https.rule: Host(`${FRONTEND_APP_DOMAIN}`)
+      traefik.http.routers.frontend-app-https.entrypoints: https
+      traefik.http.routers.frontend-app-https.tls: true
+      traefik.http.routers.frontend-app-https.tls.certresolver: le
+      traefik.http.routers.frontend-app-https.service: frontend-app-service
+
+      traefik.http.services.frontend-app-service.loadbalancer.server.port: 3000
+      traefik.http.middlewares.frontend-app-headers.headers.customrequestheaders.X-Forwarded-Proto: https
+    networks:
+      - traefik-public
+
+networks:
+  default:
+    driver: bridge
+  traefik-public:
+    external: true

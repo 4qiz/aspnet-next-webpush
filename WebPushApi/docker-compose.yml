@@ -1,0 +1,35 @@
+services:
+  order-api:
+    build:
+      context: .
+      dockerfile: RestaurantOrder/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8080
+    env_file:
+      - .env
+    labels:
+      traefik.enable: true
+      traefik.docker.network: traefik-public
+
+      traefik.http.routers.order-api-http.rule: Host(`${ORDER_API_DOMAIN?Variable not set}`)
+      traefik.http.routers.order-api-http.entrypoints: http
+      traefik.http.routers.order-api-http.middlewares: https-redirect
+      traefik.http.routers.order-api-http.service: order-api-service
+
+      traefik.http.routers.order-api-https.rule: Host(`${ORDER_API_DOMAIN?Variable not set}`)
+      traefik.http.routers.order-api-https.entrypoints: https
+      traefik.http.routers.order-api-https.tls: true
+      traefik.http.routers.order-api-https.tls.certresolver: le
+      traefik.http.routers.order-api-https.service: order-api-service
+
+      traefik.http.services.order-api-service.loadbalancer.server.port: 8080
+      traefik.http.middlewares.order-api-headers.headers.customrequestheaders.X-Forwarded-Proto: https
+    networks:
+      - traefik-public
+
+networks:
+  default:
+    driver: bridge
+  traefik-public:
+    external: true
